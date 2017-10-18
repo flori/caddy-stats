@@ -1,6 +1,8 @@
 package log_json
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -21,9 +23,19 @@ func (l LogJSON) Target() string {
 	return l.Request.Host + l.Request.URL.String()
 }
 
+func (l LogJSON) Map() map[string]string {
+	return map[string]string{
+		"target":  l.Target(),
+		"referer": l.Request.Referer(),
+		"time":    l.Time.Format(time.RFC3339),
+	}
+}
+
 // String returns the JSON representation of this LogJSON object as a string.
 func (l LogJSON) String() string {
-	return "{\"target\":\"" + l.Target() + "\",\"referer\":\"" +
-		l.Request.Referer() + "\",\"time\":\"" + l.Time.Format(time.RFC3339) +
-		"\"}"
+	t, err := json.Marshal(l.Map())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(t)
 }
