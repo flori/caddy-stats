@@ -22,6 +22,8 @@ type StatsHandler struct {
 	Next       httpserver.Handler
 }
 
+var client *redis.Client
+
 func redisURL() string {
 	url, ok := os.LookupEnv(REDIS_URL_VARIABLE)
 	if !ok {
@@ -31,15 +33,18 @@ func redisURL() string {
 }
 
 func newRedisClient(h StatsHandler) *redis.Client {
-	ru := h.RedisURL
-	if ru == "" {
-		ru = redisURL()
+	if client == nil {
+		ru := h.RedisURL
+		if ru == "" {
+			ru = redisURL()
+		}
+		options, err := redis.ParseURL(ru)
+		if err != nil {
+			log.Fatal(err)
+		}
+		client = redis.NewClient(options)
 	}
-	options, err := redis.ParseURL(ru)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return redis.NewClient(options)
+	return client
 }
 
 func addToLog(c *redis.Client, l log_json.LogJSON, logMaxSize int) {
