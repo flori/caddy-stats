@@ -37,7 +37,7 @@ func newRedisClient(h StatsHandler) *redis.Client {
 	}
 	options, err := redis.ParseURL(ru)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 	return redis.NewClient(options)
 }
@@ -45,11 +45,11 @@ func newRedisClient(h StatsHandler) *redis.Client {
 func addToLog(c *redis.Client, l log_json.LogJSON, logMaxSize int) {
 	zadd := c.ZAdd(LOG_SET, redis.Z{float64(l.Time.Unix()), l.String()})
 	if zadd.Err() != nil {
-		log.Fatal(zadd.Err())
+		log.Panic(zadd.Err())
 	}
 	zrr := c.ZRemRangeByRank(LOG_SET, 0, int64(-logMaxSize-1))
 	if zrr.Err() != nil {
-		log.Fatal(zrr.Err())
+		log.Panic(zrr.Err())
 	}
 }
 
@@ -59,7 +59,7 @@ func (h StatsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, er
 	l := log_json.NewLogJSON(r)
 	incr := c.Incr("HIT:" + l.Target())
 	if incr.Err() != nil {
-		log.Fatal(incr.Err())
+		log.Panic(incr.Err())
 	}
 	addToLog(c, l, h.LogMaxSize)
 	return h.Next.ServeHTTP(w, r)

@@ -35,7 +35,7 @@ func (l LogJSON) Map() map[string]string {
 func (l LogJSON) String() string {
 	t, err := json.Marshal(l.Map())
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 	return string(t)
 }
